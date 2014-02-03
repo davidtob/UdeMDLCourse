@@ -1,6 +1,8 @@
 import numpy
 import cPickle
 
+# This should point to the contents of the directory /data/lisa/data/timit/
+# from the lab network.
 timit_location = "../timit/"
 
 phonemes = numpy.array(cPickle.load(open(timit_location + 'readable/phonemes.pkl')))
@@ -59,6 +61,10 @@ def word_num_to_word_str(idx):
 def train_sentence_idx_to_words(idx):
     return word_num_to_word_str( train_sentence_idx_to_word_nums(idx) )
 
+# For lack of a better terminology I call a "phoneme index"
+# the index of the a recoding of an utterance of a phoneme
+# in the train_phn array. I call the number that identifies
+# a specific phoneme (e.g. 'h#' or 'eng') the "phoneme number".
 def train_sentence_idx_to_phoneme_idcs(idx):
     first_phoneme_idx, last_phoneme_idx = train_seq_to_phn[idx]
     return range( first_phoneme_idx, last_phoneme_idx)
