@@ -23,7 +23,6 @@ for i in range(len(phonemes)):
   #print "<tr><td>",i,"</td><td>",phonemes[i], '</td><td>', sum(train_phn[:largest_phn_idx,2]==i),"</tr>"
 
 print "Number of recordings of each sentence:"
-
 def dict_count_add( dic, key ):
     if key in dic:
         dic[key] = dic[key] + 1
