@@ -39,7 +39,7 @@ class TimitDataSet:
 		return len(self.wrd)
 	
 	def number_of_distinct_speakers(self):
-		return len(self.spkr)
+		return len(unique(self.spkr))
 
 	def sentence_idx_to_wave(self,idx):
 		return self.x_raw[idx]
