@@ -89,7 +89,7 @@ class TimitDataSet:
 		return self.wrd[idx][0:2]
 
 	def word_idx_to_word_num(self,idx):
-		return self_wrd[idx][2]
+		return self.wrd[idx][2]
     
 	def sentence_idx_to_word_idcs(self,idx):
 		first_word_idx, last_word_idx = self.seq_to_wrd[idx]
