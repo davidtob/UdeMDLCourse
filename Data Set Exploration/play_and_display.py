@@ -41,6 +41,8 @@ def plot_waveform_with_phones_and_words( filename, sent_idx ):
     # Create the line showing the current position
     vertline, = ax.plot( [0,0], [-1,3])
 
+    #trans = ax.get_xaxis_transform()
+
     # Plot phones and record positions for animation
     colors = ['b', 'g', 'r', 'c']
     offsets = []
@@ -50,7 +52,6 @@ def plot_waveform_with_phones_and_words( filename, sent_idx ):
         start = offset_to_ms(start); end = offset_to_ms(end)
         offsets.append( (start,end) )
         ax.axvspan(start, end, alpha=.2, color=colors[i%len(colors)])
-        trans = ax.get_xaxis_transform()
         text = ax.text((start + end) / 2, (i%3)/4.0+1, train.phoneme_idx_to_phoneme_str(phn_idx), horizontalalignment="center")
         texts.append(text)
     
@@ -67,7 +68,7 @@ def plot_waveform_with_phones_and_words( filename, sent_idx ):
         ax.annotate(
             '', xy=(start, y), xycoords = 'data',
             xytext = (end, y), textcoords = 'data',
-            arrowprops = {'arrowstyle':'<->'})
+            arrowprops = {'arrowstyle':'|-|'} )#, transform = trans)
     
     # Set up the animation
     fps = 20
