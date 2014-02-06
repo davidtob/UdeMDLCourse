@@ -12,38 +12,13 @@ import scipy.io.wavfile
 import matplotlib.pyplot as plt
 from matplotlib import animation
 
-def animate(i,vertline,offsets,texts,dt):
-    t = i*dt # dt is number of milliseconds per frame
-    vertline.set_data( [t], [-1,3] )
-    for text,offset in zip(texts,offsets):
-        if offset[0]<=t<offset[1]:
-            text.set_color('r')
-            newtext = text
-        else:
-            text.set_color('k')
-    return tuple([vertline]+  texts)
+def offset_to_ms( off ):
+    return off/16000.0*1000.0
 
-def plot_waveform_with_phones_and_words( filename, sent_idx ):
-    # Get sentence data
-    wave = train.sentence_idx_to_wave(sent_idx)
-    wave = wave/float(max( max(wave), -min(wave) )) # normalize
-    offset_to_ms = lambda off: off/16000.0*1000.0
-    clip_length = offset_to_ms(len(wave)) # length in milliseconds
-    phn_idcs = train.sentence_idx_to_phoneme_idcs(sent_idx)
-    word_idcs = train.sentence_idx_to_word_idcs(sent_idx)
 
-    # Plot waveform
-    fig = plt.figure()
-    fig.suptitle( " ".join(train.sentence_idx_to_words(sent_idx)))
-    ax = fig.add_subplot(111)
-    line = ax.plot( numpy.linspace(0, clip_length, len(wave)), wave )
-
-    # Create the line showing the current position
-    vertline, = ax.plot( [0,0], [-1,3])
-
-    #trans = ax.get_xaxis_transform()
-
+def add_phones_to_plot(ax, sent_idx):
     # Plot phones and record positions for animation
+    phn_idcs = train.sentence_idx_to_phoneme_idcs(sent_idx)
     colors = ['b', 'g', 'r', 'c']
     offsets = []
     texts = []
@@ -54,7 +29,12 @@ def plot_waveform_with_phones_and_words( filename, sent_idx ):
         ax.axvspan(start, end, alpha=.2, color=colors[i%len(colors)])
         text = ax.text((start + end) / 2, (i%3)/4.0+1, train.phoneme_idx_to_phoneme_str(phn_idx), horizontalalignment="center")
         texts.append(text)
-    
+    return texts, offsets
+
+def add_words_to_plot(ax,sent_idx):
+    offsets = []
+    texts = []
+    word_idcs = train.sentence_idx_to_word_idcs(sent_idx)
     # Plot words and record positions for animation
     for wrd_idx,i in zip(word_idcs,range(len(word_idcs))):
         start, end = train.word_idx_to_offsets(wrd_idx)
@@ -69,11 +49,72 @@ def plot_waveform_with_phones_and_words( filename, sent_idx ):
             '', xy=(start, y), xycoords = 'data',
             xytext = (end, y), textcoords = 'data',
             arrowprops = {'arrowstyle':'|-|'} )#, transform = trans)
+    return texts,offsets
+
+
+def plot_waveform_with_phones_and_words( sent_idx ):
+    # Get sentence data
+    wave = train.sentence_idx_to_wave(sent_idx)
+    wave = wave/float(max( max(wave), -min(wave) )) # normalize
+    clip_length = offset_to_ms(len(wave)) # length in milliseconds
+
+    # Plot waveform
+    fig = plt.figure()
+    fig.suptitle( " ".join(train.sentence_idx_to_words(sent_idx)))
+    ax = fig.add_subplot(111)
+    ax.plot( numpy.linspace(0, clip_length, len(wave)), wave )
+
+    # Create the line showing the current position
+    vertline, = ax.plot( [0,0], [-1,3])
+
+    #trans = ax.get_xaxis_transform()
+    phn_texts, phn_offsets = add_phones_to_plot(ax, sent_idx)
+    wrd_texts, wrd_offsets = add_words_to_plot(ax, sent_idx)
+
+    return (fig, vertline, phn_texts+wrd_texts,phn_offsets+wrd_offsets)
+
+def plot_image_with_phones_and_words( img, sent_idx ):
+    # Get sentence data
+    wave = train.sentence_idx_to_wave(sent_idx)
+    wave = wave/float(max( max(wave), -min(wave) )) # normalize
+    clip_length = offset_to_ms(len(wave)) # length in milliseconds
+
+    # Plot waveform
+    fig = plt.figure()
+    fig.suptitle( " ".join(train.sentence_idx_to_words(sent_idx)))
+    ax = fig.add_subplot(111)
+    im = plt.imshow( img, extent=(0, clip_length, -1,0.9),aspect = clip_length/2/2 )#numpy.linspace(0, clip_length, len(wave)), wave )
+    im.set_cmap('hot')    
+    
+    plt.axis( (0,clip_length,-1,3))
+
+    # Create the line showing the current position
+    vertline, = ax.plot( [0,0], [-1,3])
+
+    #trans = ax.get_xaxis_transform()
+    phn_texts, phn_offsets = add_phones_to_plot(ax, sent_idx)
+    wrd_texts, wrd_offsets = add_words_to_plot(ax, sent_idx)
+
+    return (fig, vertline, phn_texts+wrd_texts,phn_offsets+wrd_offsets)
+
+def animate(i,vertline,offsets,texts,dt):
+    t = i*dt # dt is number of milliseconds per frame
+    vertline.set_data( [t], [-1,3] )
+    for text,offset in zip(texts,offsets):
+        if offset[0]<=t<offset[1]:
+            text.set_color('r')
+            newtext = text
+        else:
+            text.set_color('k')
+    return tuple([vertline]+  texts)
+
+def animate_waveform_with_phones_and_words( filename, sent_idx ):
+    fig,vertline,texts,offsets = plot_waveform_with_phones_and_words( sent_idx )    
     
     # Set up the animation
     fps = 20
     interval = 1000.0/fps # Time that passes per frame
-    num_frames = int(numpy.ceil(len( wave )/16000.0*20.0))
+    num_frames = int(numpy.ceil(len( train.sentence_idx_to_wave( sent_idx ) )/16000.0*20.0))
     # had to install libavcodec-extra-53 for the below to work, see http://matplotlib.1069221.n5.nabble.com/Saving-animations-td39234.html
     anim = animation.FuncAnimation(fig, animate, fargs=(vertline,offsets,texts,interval),
                                frames=num_frames, interval=interval, blit=True, repeat=False)
@@ -102,7 +143,7 @@ def delete_temp_files():
 def make_video( dataset, sent_idx, output_fn ):
 	delete_temp_files()
 	print "Animating"
-	plot_waveform_with_phones_and_words( '.play_and_display_temp.mp4', sent_idx )
+	animate_waveform_with_phones_and_words( '.play_and_display_temp.mp4', sent_idx )
 	print "Saving sound"
 	scipy.io.wavfile.write(".play_and_display_temp.wav", 16000, train.sentence_idx_to_wave(sent_idx) )
 	print "Merging"
