@@ -1,0 +1,88 @@
+!obj:pylearn2.train.Train {
+    dataset: &train !obj:my_data.PredFrames {
+        xsamples: 480,
+        ysamples: 1,
+        recenter_samples: True,
+        rescaling: 'empirical_std',
+        #normalize_component:  ,
+        phone: 'aa',
+        max_examples: 100000,
+        trainorvalid: 'train',
+        train_valid_split: 0.8,
+        seed: 0,
+    },
+    model: !obj:pylearn2.models.mlp.MLP {
+        layers: [
+                !obj:pylearn2.models.mlp.RectifiedLinear {
+                     layer_name: 'h1',
+                     dim: 480,
+                     irange: 0.079056941504209
+                   },
+                 !obj:pylearn2.models.mlp.RectifiedLinear {
+                     layer_name: 'h2',
+                     dim: 480,
+                     irange: 0.079056941504209
+                   },
+                 !obj:pylearn2.models.mlp.RectifiedLinear {
+                     layer_name: 'h3',
+                     dim: 480,
+                     irange: 0.079056941504209
+                   },
+                 !obj:pylearn2.models.mlp.Linear {
+                     layer_name: 'y',
+                     dim: 1, 
+                     irange: 0.11168711865749,
+                 },
+                ],
+        nvis: 480,
+    },
+    algorithm: !obj:pylearn2.training_algorithms.sgd.SGD {
+        batch_size: 100,
+        learning_rate: 0.0001,
+        init_momentum: .5,
+        monitoring_dataset: {
+            'train': *train,
+            'valid' : !obj:my_data.PredFrames {
+                xsamples: 480,
+                ysamples: 1,
+                recenter_samples: True,
+                rescaling: 'empirical_std',
+                #normalize_component:  ,
+                phone: 'aa',
+                max_examples: 100000,
+                trainorvalid: 'valid',
+                train_valid_split: 0.8,
+                seed: 0,
+            }
+        },
+        cost: !obj:pylearn2.costs.cost.SumOfCosts { costs: [
+                !obj:pylearn2.costs.mlp.Default {
+                }, !obj:pylearn2.costs.mlp.L1WeightDecay {
+                        coeffs: [ 0.0001,0.0001,0.0001,0.0001, ],
+                }
+                ]
+        }, 
+        #termination_criterion: !obj:pylearn2.termination_criteria.MonitorBased {   
+        #    channel_name: "valid_objective",
+        #    prop_decrease: 0.,
+        #    N: 20
+        #}
+        termination_criterion: !obj:pylearn2.termination_criteria.EpochCounter {
+            max_epochs: 200
+        }
+    },
+    extensions: [
+        !obj:pylearn2.train_extensions.best_params.MonitorBasedSaveBest {
+            channel_name: 'valid_objective',
+            save_path: "best23.pkl",
+        },
+        !obj:pylearn2.training_algorithms.sgd.MomentumAdjustor {
+            start: 1,
+            saturate: 10,
+            final_momentum: .99
+        }
+    ],
+    save_path: "progress23.pkl",
+    save_freq: 1
+}
+

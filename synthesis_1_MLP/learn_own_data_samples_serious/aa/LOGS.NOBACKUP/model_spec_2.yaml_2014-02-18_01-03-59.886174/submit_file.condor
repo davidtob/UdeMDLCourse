@@ -1,0 +1,25 @@
+executable     = LOGS.NOBACKUP/model_spec_2.yaml_2014-02-18_01-03-59.886174/launch.sh
+universe       = vanilla
+requirements   = True&&(Arch == "X86_64")&&(target.CPUS>=1)&&(Memory>=950)&&(False  || (OpSys == "FC14"))
+output         = LOGS.NOBACKUP/model_spec_2.yaml_2014-02-18_01-03-59.886174/$(Process).out
+error          = LOGS.NOBACKUP/model_spec_2.yaml_2014-02-18_01-03-59.886174/$(Process).error
+log            = /Tmp/belius/dbidispatch/LOGS.NOBACKUP/model_spec_2.yaml_2014-02-18_01-03-59.886174/condor.log
+getenv         = False
+nice_user      = False
+notification   = Error
+ImageSize      = 5
+environment    = " OMP_NUM_THREADS=1 GOTO_NUM_THREADS=1 MKL_NUM_THREADS=1 CONDOR_JOB_LOGDIR=LOGS.NOBACKUP/model_spec_2.yaml_2014-02-18_01-03-59.886174"
+rank = True
+
+request_memory = 950
+
+request_cpus = 1
+
+stream_error            = True
+stream_output           = True
+transfer_executable     = True
+when_to_transfer_output = ON_EXIT
+arguments    = "'/data/lisatmp/ift6266h14/belius/pylearn2/pylearn2/scripts/train.py /data/lisatmp/ift6266h14/belius/synthesis_1_MLP/learn_own_data_samples_serious/aa/model_spec_2.yaml'" 
+output       = LOGS.NOBACKUP/model_spec_2.yaml_2014-02-18_01-03-59.886174/0.out 
+error        = LOGS.NOBACKUP/model_spec_2.yaml_2014-02-18_01-03-59.886174/0.err 
+queue

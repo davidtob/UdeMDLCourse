@@ -1,0 +1,111 @@
+<?php 
+function choice( $array ) {
+	return $array[ array_rand( $array ) ];
+}
+function p( $x )
+{
+	echo $x;
+	return $x;
+}
+
+$seed = $argv[1];
+srand( $seed );
+?>
+!obj:pylearn2.train.Train {
+    dataset: &train !obj:my_data.PredFrames {
+        xsamples: <?php $xsamples = p( choice( [ 10, 20, 40, 80, 160, 240, 480, 960, 1920 ] ) ); ?>,
+        ysamples: <?php $ysamples = p( choice( array_merge( array_fill( 0,16,1),  # Bias towards smaller values
+                                                            array_fill( 0,8,2),
+                                                            array_fill( 0,4,4), 
+                                                            array_fill( 0,2,8),
+                                                            [16, 32, 64, 128, 256] ) ) ); ?>,
+        recenter_samples: <?php $recenter_samples = p( choice( ['True', 'False'] ) ); ?>,
+        rescaling: <?php $rescaling = p( choice( ['\'empirical_std\'','\'samples_max\'','\'empirical_std\'','\'samples_max\'','\'2**15\''] ) ); ?>,
+        #normalize_component:  <?php #$normalize_component = p( choice( [True, False] ) ); ?>,
+        phone: <?php $phone = p( '\'oo\'' )?>,
+        max_examples: <?php $max_examples = p( 100000 ); ?>,
+        trainorvalid: 'train',
+        train_valid_split: <?php $train_valid_split = p( 0.8 ); ?>,
+        seed: <?php $data_seed = p( 0 );?>,
+    },
+    model: !obj:pylearn2.models.mlp.MLP {
+        layers: [
+                <?php $num_hidden_layers = choice( [1,1,1,2,2,2,3,4,5] );
+                for( $i=1 ; $i<= $num_hidden_layers ; $i++ )
+                {
+				 ?>!obj:pylearn2.models.mlp.RectifiedLinear {
+                     layer_name: 'h<?php p( $i );?>',
+                     dim: <?php p( $xsamples ); ?>,
+                     irange: <?php p( sqrt( 6.0/( 2*$xsamples ) ) ); ?>
+
+                   },
+                 <?php }
+                 ?>!obj:pylearn2.models.mlp.Linear {
+                     layer_name: 'y',
+                     dim: <?php p( $ysamples ); ?>, 
+                     irange: <?php p( sqrt( 6.0/($ysamples+$xsamples) ) ); ?>,
+                 },
+                ],
+        nvis: <?php p( $xsamples ); ?>,
+    },
+    algorithm: !obj:pylearn2.training_algorithms.sgd.SGD {
+        batch_size: 100,
+        learning_rate: <?php $learning_rate = p( choice( [0.001, .0001, 0.00001, 0.000001 ] ) )?>,
+        init_momentum: .5,
+        monitoring_dataset: {
+            'train': *train,
+            'valid' : !obj:my_data.PredFrames {
+                xsamples: <?php p( $xsamples ); ?>,
+                ysamples: <?php p( $ysamples ); ?>,
+                recenter_samples: <?php p( $recenter_samples ); ?>,
+                rescaling: <?php p( $rescaling ); ?>,
+                #normalize_component:  <?php #p( $normalize_component ); ?>,
+                phone: <?php p( $phone ); ?>,
+                max_examples: <?php p( $max_examples );?>,
+                trainorvalid: 'valid',
+                train_valid_split: <?php p( $train_valid_split );?>,
+                seed: <?php p( $data_seed );?>,
+            }
+        },
+        cost: !obj:pylearn2.costs.cost.SumOfCosts { costs: [
+                !obj:pylearn2.costs.mlp.Default {
+                }, !obj:pylearn2.costs.mlp.<?php $regularization = p( choice([ 'WeightDecay', 'L1WeightDecay' ]) );?> {
+<?php $norm_const = choice( [0.1, 0.01, 0.001, 0.0001, 0.00001, 0.000001, 0.000001, 0.000001, 0.000001, 0.0000001, '0.0' ] );?>
+                        coeffs: [ <?php for( $i=1;$i<=$num_hidden_layers+1;$i++) { echo $norm_const . ","; } ?> ],
+                }
+                ]
+        }, 
+        #termination_criterion: !obj:pylearn2.termination_criteria.MonitorBased {   
+        #    channel_name: "valid_objective",
+        #    prop_decrease: 0.,
+        #    N: 20
+        #}
+        termination_criterion: !obj:pylearn2.termination_criteria.EpochCounter {
+            max_epochs: 200
+        }
+    },
+    extensions: [
+        !obj:pylearn2.train_extensions.best_params.MonitorBasedSaveBest {
+            channel_name: 'valid_objective',
+            save_path: "best<?php echo $seed;?>.pkl",
+        },
+        !obj:pylearn2.training_algorithms.sgd.MomentumAdjustor {
+            start: 1,
+            saturate: 10,
+            final_momentum: .99
+        }
+    ],
+    save_path: "progress<?php echo $seed;?>.pkl",
+    save_freq: 1
+}
+
+<?php
+if( !file_exists( 'hparams.txt' ) )
+{
+	file_put_contents( 'hparams.txt',
+	"seed \t xsamples \t ysamples \t recenter_samples\t rescaling \t num_hidden_layers\t learning_rate\t Regularization\n");
+}
+file_put_contents( 'hparams.txt', $seed . "\t" . $xsamples . "\t" . $ysamples . "\t" . $recenter_samples . "\t" . $rescaling .
+                                          "\t" . "\t" . $num_hidden_layers . "\t" . $learning_rate . 
+                                          "\t" . $regularization . "\n", FILE_APPEND );
+?>

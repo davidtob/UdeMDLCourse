@@ -1,0 +1,4 @@
+[DBICondor] 2014-02-18 01:04:07.688040 5348 will renew the lauch file LOGS.NOBACKUP/model_spec_2.yaml_2014-02-18_01-03-59.886174/launch.sh each 3600s
+All jobs done.
+[DBICondor] 2014-02-18 01:04:52.964951 5348 condor_wait return code 0
+[DBICondor] 2014-02-18 01:04:52.965029 5348 all condor jobs finished. Exiting
