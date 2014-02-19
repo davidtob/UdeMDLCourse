@@ -1,8 +1,0 @@
-Ticket cache: FILE:/tmp/krb5cc_8971_d2xjUU_condor
-Default principal: belius@ADS.IRO.UMONTREAL.CA
-
-Valid starting     Expires            Service principal
-02/18/14 03:08:45  02/18/14 12:09:43  krbtgt/ADS.IRO.UMONTREAL.CA@ADS.IRO.UMONTREAL.CA
-	renew until 03/18/14 01:02:15
-ulimit cmd: ulimit -v 1484800
-return value 1
