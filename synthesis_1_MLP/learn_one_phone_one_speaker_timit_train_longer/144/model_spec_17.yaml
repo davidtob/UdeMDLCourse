@@ -1,0 +1,88 @@
+!obj:pylearn2.train.Train {
+    dataset: &train !obj:timit_data.TimitPredFramesForPhn {
+        xsamples: 160,
+        ysamples: 1,
+        rescale: sentmax,
+        speaker_info: False,
+        speaker_id: 144,
+        phone: aa,
+        num_examples: 100000,
+        trainorvalid: 'train',
+        train_valid_split: 0.8,
+        seed: 0,
+    },
+    model: !obj:pylearn2.models.mlp.MLP {
+        layers: [
+                !obj:pylearn2.models.mlp.RectifiedLinear {
+                     layer_name: 'h1',
+                     dim: 160,
+                     irange: 0.13693063937629                   },
+                 !obj:pylearn2.models.mlp.RectifiedLinear {
+                     layer_name: 'h2',
+                     dim: 160,
+                     irange: 0.13693063937629                   },
+                 !obj:pylearn2.models.mlp.RectifiedLinear {
+                     layer_name: 'h3',
+                     dim: 160,
+                     irange: 0.13693063937629                   },
+                 !obj:pylearn2.models.mlp.RectifiedLinear {
+                     layer_name: 'h4',
+                     dim: 160,
+                     irange: 0.13693063937629                   },
+                 !obj:pylearn2.models.mlp.RectifiedLinear {
+                     layer_name: 'h5',
+                     dim: 160,
+                     irange: 0.13693063937629                   },
+                 !obj:pylearn2.models.mlp.Linear {
+                     layer_name: 'y',
+                     dim: 1, 
+                     irange: 0.19304683562634,
+                 },
+                ],
+        nvis: 160,
+    },
+    algorithm: !obj:pylearn2.training_algorithms.sgd.SGD {
+        batch_size: 100,
+        learning_rate: 0.0001,
+        init_momentum: .5,
+        monitoring_dataset: {
+            'train': *train,
+            'valid': !obj:timit_data.TimitPredFramesForPhn {
+                xsamples: 160,
+                ysamples: 1,
+                rescale: sentmax,
+                speaker_info: False,
+                speaker_id: 144,
+                phone: aa,
+                num_examples: 100000,
+                trainorvalid: 'valid',
+                train_valid_split: 0.8,
+                seed: 0,
+            }
+        },
+        cost: !obj:pylearn2.costs.cost.SumOfCosts { costs: [
+                !obj:pylearn2.costs.mlp.Default {
+                }, !obj:pylearn2.costs.mlp.WeightDecay {
+                        coeffs: [ 1.0E-6,1.0E-6,1.0E-6,1.0E-6,1.0E-6,1.0E-6, ],
+                }
+                ]
+        }, 
+        termination_criterion: !obj:pylearn2.termination_criteria.EpochCounter {
+            max_epochs: 200
+        }
+    },
+    extensions: [
+        !obj:pylearn2.train_extensions.best_params.MonitorBasedSaveBest {
+            channel_name: 'valid_objective',
+            save_path: "best17.pkl",
+        },
+        !obj:pylearn2.training_algorithms.sgd.MomentumAdjustor {
+            start: 1,
+            saturate: 10,
+            final_momentum: .99
+        }
+    ],
+    save_path: "progress17.pkl",
+    save_freq: 1
+}
+
