@@ -1,0 +1,5 @@
+for speaker in 104 144 169 179
+do
+	cd /data/lisatmp/ift6266h14/belius/synthesis_1_MLP/learn_one_phone_one_speaker_timit_train_longer/$speaker
+	jobdispatch "/data/lisatmp/ift6266h14/belius/pylearn2/pylearn2/scripts/train.py /data/lisatmp/ift6266h14/belius/synthesis_1_MLP/learn_one_phone_one_speaker_timit_train_longer/$speaker/model_spec_{{2,9,13,14,16,21,22,28,29}}.yaml"
+done
