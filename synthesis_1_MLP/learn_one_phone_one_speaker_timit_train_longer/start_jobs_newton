@@ -1,0 +1,14 @@
+source ../setpythonpath_bash
+
+for speaker in 104 144 169 179
+do
+	#cd "/nobackup_home/belius/Dropbox/matematik/educate thyself/UdeMDLCourse/synthesis_1_MLP/learn_one_phone_one_speaker_timit_train_longer/$speaker"
+        for model in 2 9 13 14 16 21 22 28 29
+        do
+		for train in 1 0.3 0.1
+                do
+                    echo "Now starting job $speaker $model $train"
+		    ~/p2s/train.py $speaker/model_spec_$model-$train.yaml #> $speaker/log_$model.txt
+                done
+	done
+done

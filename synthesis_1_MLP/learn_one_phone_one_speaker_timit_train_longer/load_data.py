@@ -3,7 +3,7 @@ import cPickle
 
 # This should point to the contents of the directory /data/lisa/data/timit/
 # from the lab network.
-timit_readable_location = "/data/lisa/data/timit/readable"
+timit_readable_location = "../../timit/readable"
 
 phonemes = numpy.array(cPickle.load(open(timit_readable_location + '/phonemes.pkl')))
 words = numpy.array(cPickle.load(open(timit_readable_location + '/words.pkl')))

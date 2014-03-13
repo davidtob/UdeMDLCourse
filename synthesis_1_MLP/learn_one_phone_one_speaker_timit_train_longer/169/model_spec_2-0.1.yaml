@@ -1,0 +1,82 @@
+!obj:pylearn2.train.Train {
+    dataset: &train !obj:timit_data.TimitPredFramesForPhn {
+        xsamples: 180,
+        ysamples: 1,
+        rescale: datasetmax,
+        speaker_info: False,
+        speaker_id: 169,
+        phone: aa,
+        num_examples: 10000,
+        trainorvalid: 'train',
+        train_valid_split: 0.8,
+        seed: 0,
+    },
+    model: !obj:pylearn2.models.mlp.MLP {
+        layers: [
+                !obj:pylearn2.models.mlp.RectifiedLinear {
+                     layer_name: 'h1',
+                     dim: 180,
+                     irange: 0.12909944487358                   },
+                 !obj:pylearn2.models.mlp.RectifiedLinear {
+                     layer_name: 'h2',
+                     dim: 180,
+                     irange: 0.12909944487358                   },
+                 !obj:pylearn2.models.mlp.RectifiedLinear {
+                     layer_name: 'h3',
+                     dim: 180,
+                     irange: 0.12909944487358                   },
+                 !obj:pylearn2.models.mlp.Linear {
+                     layer_name: 'y',
+                     dim: 1, 
+                     irange: 0.18206913871032,
+                 },
+                ],
+        nvis: 180,
+    },
+    algorithm: !obj:pylearn2.training_algorithms.sgd.SGD {
+        batch_size: 100,
+        learning_rate: 0.1,
+        #init_momentum: .5,
+        monitoring_dataset: {
+            'train': *train,
+            'valid': !obj:timit_data.TimitPredFramesForPhn {
+                xsamples: 180,
+                ysamples: 1,
+                rescale: datasetmax,
+                speaker_info: False,
+                speaker_id: 169,
+                phone: aa,
+                num_examples: 10000,
+                trainorvalid: 'valid',
+                train_valid_split: 0.8,
+                seed: 0,
+            }
+        },
+        cost: !obj:pylearn2.costs.cost.SumOfCosts { costs: [
+                !obj:pylearn2.costs.mlp.Default {
+                }, !obj:pylearn2.costs.mlp.WeightDecay {
+                        coeffs: [ 0.01,0.01,0.01,0.01, ],
+                }
+                ]
+        },
+        termination_criterion: !obj:pylearn2.termination_criteria.MonitorBased {
+            channel_name: 'valid_objective',
+            prop_decrease: 0.001,
+            N: 25 
+        },
+    },
+    extensions: [
+        !obj:pylearn2.train_extensions.best_params.MonitorBasedSaveBest {
+            channel_name: 'valid_objective',
+            save_path: "169/best2-0.1.pkl",
+        },
+        #!obj:pylearn2.training_algorithms.sgd.MomentumAdjustor {
+        #    start: 1,
+        #    saturate: 10,
+        #    final_momentum: .99
+        #}
+    ],
+    save_path: "169/progress2-0.1.pkl",
+    save_freq: 1
+}
+
