@@ -152,7 +152,7 @@ class TimitPredFramesForPhn(DenseDesignMatrix):
         tot = 0
         n = 0
         for i in range(train.number_of_recorded_sentences()):
-            tot = tot + sum( train.sentence_idx_to_wave(i)**2 )
+            tot = tot + sum( train.sentence_idx_to_wave(i).astype(numpy.float32)**2 )
             n = n + len(train.sentence_idx_to_wave(i))
         return numpy.sqrt(tot/n)
      
