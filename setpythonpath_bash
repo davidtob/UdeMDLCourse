@@ -1,0 +1,7 @@
+# Add currenty directory to python path so that timit data class
+# can be imported by pylearn2 scripts
+
+
+CWD=$(pwd)
+
+export PYTHONPATH=$PYTHONPATH:$CWD
