@@ -1,0 +1,10 @@
+for speaker_id in 244 
+do
+	for reg_coeff in 0.0001 0.0005 0.00001 0.00005 0.00001 0
+        do
+              for noise in 0.01 0.02 0.04 0.08 0.16 0.32
+              do
+                     python trained_model.py train /space/cdrw/one_phn_one_speaker_noise 0.0125 $reg_coeff $speaker_id 28 $noise
+              done
+        done
+done
