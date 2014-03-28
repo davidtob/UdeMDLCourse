@@ -1,7 +1,7 @@
 import numpy
 from string import Template
 from pylearn2.config import yaml_parse
-import pylab as plt
+#import pylab as plt
 import sys
 import cPickle
 import theano
@@ -48,6 +48,7 @@ class TrainedModel:
         return (train_obj,valid_obj,training_rate)#,seconds_per_epoch)
 
     def training_graph( self ):
+        import pylab as plt
         train_obj, valid_obj, training_rate, = self.training_monitor()
         fig = plt.figure( figsize=(20,10))
         i = 1
@@ -65,7 +66,7 @@ class TrainedModel:
     def mses( self ):
         bestMLP = cPickle.load(open(self.bestMLPpath))
         trainmse = numpy.array(bestMLP.monitor.channels['train_objective'].val_record[-1])
-        validmse = numpy.array(bestMLP.monitor.channels['train_objective'].val_record[-1])
+        validmse = numpy.array(bestMLP.monitor.channels['valid_objective'].val_record[-1])
         return (trainmse,validmse)
 
     def train( self ):

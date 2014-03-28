@@ -1,3 +1,6 @@
+export PYTHONPATH="$PYTHONPATH:/nobackup_home/belius/Dropbox/matematik/educate thyself/UdeMDLCourse"
+export PYLEARN2_DATA_PATH="/nobackup_home/belius/Dropbox/matematik/educate thyself/UdeMDLCourse"
+
 for speaker_id in 179 
 do
 	for reg_coeff in 0.0001 0.0005 0.00001 0.00005 0.00001 0
