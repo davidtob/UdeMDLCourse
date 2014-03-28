@@ -1,6 +1,8 @@
 import numpy
 from string import Template
 from pylearn2.config import yaml_parse
+import matplotlib
+matplotlib.use('agg')
 import pylab as plt
 import sys
 import cPickle
@@ -333,7 +335,10 @@ if __name__=="__main__":
     reg = float(sys.argv[4])
     speaker_id = int(sys.argv[5])
     phone = int(sys.argv[6])
-    noise = float(sys.argv[7])
+    if sys.argv[7]=="False":
+      noise = False
+    else:
+      noise = float(sys.argv[7])
     global tm
     tm  = TrainedModel(pklprefix, learnrate = learnrate, reg=reg, speaker_id=speaker_id, phone=phone,noise=noise)
     if whatdo=='train' or whatdo=='forcetrain':
