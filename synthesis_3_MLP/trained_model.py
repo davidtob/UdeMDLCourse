@@ -1,6 +1,8 @@
 import numpy
 from string import Template
 from pylearn2.config import yaml_parse
+import matplotlib
+matplotlib.use('agg')
 import pylab as plt
 import sys
 import cPickle
