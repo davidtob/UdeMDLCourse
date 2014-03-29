@@ -2,7 +2,7 @@ import numpy
 from trained_model import *
 
 class TMOneSentence(TrainedModel):
-    def __init__(self, pklprefix, seed=0, learnrate = 0.0125, reg = 0.00005, xsamples=400, noise=False, sentence_num = 0 ):
+    def __init__(self, pklprefix, seed=0, learnrate = 0.0125, reg = 0.00005, xsamples=400, noise="False", sentence_num = 0 ):
         self.string_desc_base = "one_sentence-%d"%sentence_num
         self.sentence_num = sentence_num
         TrainedModel.__init__( self, seed=seed, pklprefix=pklprefix, learnrate=learnrate, reg=reg, xsamples = xsamples, noise=noise )
@@ -20,7 +20,7 @@ class TMOneSentence(TrainedModel):
         preds = pred_next_sample( sentence_examples )
         preds = preds.reshape( (1,preds.shape[0]) )
         
-        preds = numpy.vstack( ( numpy.zeros( (1, len(dataset.raw_wav[0])-preds.shape[0]) ), preds ) )
+        preds = numpy.hstack( ( numpy.zeros( (1, len(dataset.raw_wav[0])-preds.shape[0]) ), preds ) )
         return preds
     
     def generate_pcm( self, sigmacoeffs = [0.1], init_indices=[0] ):
@@ -39,6 +39,7 @@ class TMOneSentence(TrainedModel):
                 start: """ + str(sentence_num) + """,
                 stop: """ + str(sentence_num+1) + """,
                 audio_only: True,
+                noise: """ + self.noise + """
             }"""
     
     def monitoringdatasetyaml( self ):
@@ -56,10 +57,7 @@ if __name__=="__main__":
     pklprefix = sys.argv[2]
     learnrate = float(sys.argv[3])
     reg = float(sys.argv[4])
-    if sys.argv[5]=="False":
-      noise = False
-    else:
-      noise = float(sys.argv[5])
+    noise = sys.argv[5]
     sentence_num = int(sys.argv[6])
     global tm
     tm  = TMOneSentence(pklprefix, learnrate = learnrate, reg=reg,noise=noise, sentence_num=sentence_num )
