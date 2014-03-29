@@ -334,9 +334,14 @@ class MonitorServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(data)
     
-    def do_generatepcm(self):
+    def do_generatepcm(self, args):
+        if 'sigma'in args.keys():
+            print args['sigma'][0]
+            sigma = float(args['sigma'][0])
+        else:
+            sigma = 0
         try:
-            arr = self.tm.generate_pcm( [0], [0] )
+            arr = self.tm.generate_pcm( [sigma], [0] )
         except:
             self.do_error()
         else:
