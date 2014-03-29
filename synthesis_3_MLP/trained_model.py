@@ -137,7 +137,7 @@ class TrainedModel(object):
             next_sample = pred_next_sample( wave[0:1,i-self.xsamples:i] )
             wave[:,i:i+1] = next_sample+numpy.random.normal( 0, 1, (init.shape[0],1) )*sigmas
         
-        raw_wav = (wave*dataset._std + dataset._mean).astype( 'uint16' )
+        raw_wav = (wave*dataset._std + dataset._mean).astype( 'int16' )
         print wave[0,0:10]
         print raw_wav[0,0:10]
         print dataset._std
