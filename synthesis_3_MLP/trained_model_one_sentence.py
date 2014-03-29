@@ -9,8 +9,6 @@ class TMOneSentence(TrainedModel):
     
     def predict_each_original_sample( self ):
         dataset = self.parse_yaml().dataset
-        if length==None:
-            length = len(dataset.raw_wav[0])
         
         bestMLP = self.load_bestMLP()
         X = bestMLP.get_input_space().make_batch_theano()
@@ -21,7 +19,7 @@ class TMOneSentence(TrainedModel):
         
         preds = pred_next_sample( sentence_examples ).reshape( (preds.shape[1], 1) )
         
-        preds = numpy.vstack( ( numpy.zeros( (1, length-preds.shape[0]) ), preds ) )
+        preds = numpy.vstack( ( numpy.zeros( (1, len(dataset.raw_wav[0])-preds.shape[0]) ), preds ) )
         return preds
     
     def generate_pcm( self, sigmacoeffs = [0.1], init_indices=[0] ):
