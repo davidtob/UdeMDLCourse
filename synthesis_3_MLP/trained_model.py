@@ -55,7 +55,10 @@ class TrainedModel(object):
     def training_monitor( self ):
         progressMLP = self.load_progressMLP()
         train_obj = numpy.array(progressMLP.monitor.channels['train_objective'].val_record)
-        valid_obj = numpy.array(progressMLP.monitor.channels['valid_objective'].val_record)
+        if 'valid_objective' in progressMLP.monitor.channels.keys():
+            valid_obj = numpy.array(progressMLP.monitor.channels['valid_objective'].val_record)
+        else:
+            valid_obj = None
         training_rate = numpy.array(progressMLP.monitor.channels['learning_rate'].val_record)
         #seconds_per_epoch = numpy.array(progressMLP.monitor.channels['seconds_per_epoch'].val_record)
         return (train_obj,valid_obj,training_rate)#,seconds_per_epoch)
@@ -65,16 +68,21 @@ class TrainedModel(object):
         train_obj, valid_obj, training_rate, = self.training_monitor()
         fig = plt.figure( figsize=(20,10))
         i = 1
+            
         for start_at in [0, max(len(train_obj)-100,0)]:
             plt.subplot( 2, 3, i)
             i+=1
             plt.title( "train+valid obj starting at %d"%start_at )
             plt.plot( range(start_at,len(train_obj)), train_obj[start_at:], color='b' )
-            plt.plot( range(start_at,len(valid_obj)), valid_obj[start_at:], color='g' )
+            if valid_obj!=None:
+                plt.plot( range(start_at,len(valid_obj)), valid_obj[start_at:], color='g' )
             plt.subplot( 2, 3, i)
             i+=1
             plt.title( "valid_obj improvement ratio at %d"%start_at )
-            plt.plot( range(start_at+1,len(valid_obj)), valid_obj[start_at+1:]/valid_obj[start_at:-1] )
+            if valid_obj!=None:
+                plt.plot( range(start_at+1,len(valid_obj)), valid_obj[start_at+1:]/valid_obj[start_at:-1] )
+            else:
+                plt.plot( range(start_at+1,len(valid_obj)), train_obj[start_at+1:]/train_obj[start_at:-1] )
             plt.subplot( 2, 3, i)
             i+=1
             plt.title( "learning_rate" )
@@ -223,7 +231,11 @@ class TrainedModel(object):
         t.daemon = True
         t.start()
         if wait:
-            t.join()
+            try:
+                while True:
+                    time.sleep( 10000 )                
+            except KeyboardInterrupt:
+                return
 
 class MonitorServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
     def do_GET(self):
