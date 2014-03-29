@@ -223,10 +223,10 @@ class TrainedModel(object):
         def web_server_thread( cls ):
             httpd = None
             for port in range(8000, 8010):
-                print port
                 server_address = ('', port)
                 try:
                     httpd = BaseHTTPServer.HTTPServer(server_address, MonitorServer)
+                    break
                 except:
                     print "Could not start on port",port,", trying next"
             assert httpd!=None
