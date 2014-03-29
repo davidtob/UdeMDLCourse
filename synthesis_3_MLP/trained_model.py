@@ -20,6 +20,7 @@ import os
 import hashlib
 import time
 import base64
+import urlparse
 
 class TrainedModel(object):
     # This class should
@@ -121,7 +122,7 @@ class TrainedModel(object):
         init = numpy.tile( init, (len(sigmacoeffs),1) )
 
         if sigmacoeffs!=[0]:
-            mrse = numpy.sqrt(self.mses()[1] )
+            mrse = numpy.sqrt( self.mses()[1] )
         else:
             mrse = numpy.zeros( (len(init_indices),1) )
 
@@ -220,8 +221,15 @@ class TrainedModel(object):
     
     def start_web_server( self, wait = False ):
         def web_server_thread( cls ):
-            server_address = ('', 8000)
-            httpd = BaseHTTPServer.HTTPServer(server_address, MonitorServer)
+            httpd = None
+            for port in range(8000, 8010):
+                server_address = ('', port)
+                try:
+                    httpd = BaseHTTPServer.HTTPServer(server_address, MonitorServer)
+                except:
+                    print "Could not start on port",port,", trying next"
+                    continue
+            assert httpd!=None
             httpd.RequestHandlerClass.tm = self
             sa = httpd.socket.getsockname()
             print "Serving HTTP on", sa[0], "port", sa[1], "..."
@@ -239,22 +247,24 @@ class TrainedModel(object):
 
 class MonitorServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
     def do_GET(self):
-        if self.path=='/':
+        path = urlparse.urlparse(self.path).path
+        args = urlparse.parse_qs(urlparse.urlparse(self.path).query)
+        if path=='/':
             self.send_response(200, 'OK')
             self.send_header('Content-type', 'html')
             self.end_headers()
             self.wfile.write( 'Available commands: trainlogstdout trainlogstderr traingraph yaml generatewav generatepcm' )
-        elif self.path=='/trainlogstdout':
+        elif path=='/trainlogstdout':
             self.do_trainlog(0)
-        elif self.path=='/trainlogstderr':
+        elif path=='/trainlogstderr':
             self.do_trainlog(1)
-        elif self.path=='/traingraph':
+        elif path=='/traingraph':
             self.do_traingraph()
-        elif self.path=='/yaml':
+        elif path=='/yaml':
             self.do_yaml()
-        elif self.path=='/generatewav':
-            self.do_generatewav()
-        elif self.path=='/generatepcm':
+        elif path=='/generatewav':
+            self.do_generatewav(args)
+        elif path=='/generatepcm':
             self.do_generatepcm()
         else:
             self.send_error(404, "File not found")
@@ -288,10 +298,15 @@ class MonitorServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write( self.tm.yaml() )
     
-    def do_generatewav(self):
+    def do_generatewav(self, args):
+        if 'sigma'in args.keys():
+            print args['sigma'][0]
+            sigma = float(args['sigma'][0])
+        else:
+            sigma = 0.1
         try:
             fn = hashlib.md5(str(hashlib.md5(str(time.time())))).hexdigest()
-            wav = self.tm.generate( 0.1, 0, fn )
+            wav = self.tm.generate( sigma, 0, fn )
             data = open(fn).read()
             os.remove(fn)
         except:
