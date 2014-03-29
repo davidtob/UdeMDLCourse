@@ -82,7 +82,7 @@ class TrainedModel(object):
             if valid_obj!=None:
                 plt.plot( range(start_at+1,len(valid_obj)), valid_obj[start_at+1:]/valid_obj[start_at:-1] )
             else:
-                plt.plot( range(start_at+1,len(valid_obj)), train_obj[start_at+1:]/train_obj[start_at:-1] )
+                plt.plot( range(start_at+1,len(train_obj)), train_obj[start_at+1:]/train_obj[start_at:-1] )
             plt.subplot( 2, 3, i)
             i+=1
             plt.title( "learning_rate" )
