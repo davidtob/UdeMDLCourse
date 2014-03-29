@@ -15,7 +15,7 @@ class TMOneSentence(TrainedModel):
         Y = bestMLP.fprop(X)
         pred_next_sample = theano.function( [X[0]], Y )
         
-        sentence_examples = dataset.get(['features'], dataset.num_examples)[0]
+        sentence_examples = dataset.get(['features'], range(dataset.num_examples))[0]
         
         preds = pred_next_sample( sentence_examples ).reshape( (preds.shape[1], 1) )
         
