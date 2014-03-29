@@ -16,12 +16,14 @@ class TMOneSentence(TrainedModel):
         pred_next_sample = theano.function( [X[0]], Y )
         
         sentence_examples = dataset.get(['features'], range(dataset.num_examples))[0]
+        sentence_targets  = dataset.get(['targets'],  range(dataset.num_examples))[0]
         
         preds = pred_next_sample( sentence_examples )
         preds = preds.reshape( (1,preds.shape[0]) )
+        sentence_targets = sentence_targets.reshape( (1,preds.shape[0]) )
         
         preds = numpy.hstack( ( numpy.zeros( (1, len(dataset.raw_wav[0])-preds.shape[1]) ), preds ) )
-        return preds
+        return numpy.vstack( (preds, sentence_targets) )
     
     def generate_pcm( self, sigmacoeffs = [0.1], init_indices=[0] ):
         wave, raw_wav, dataset = TrainedModel.generate_pcm( self, sigmacoeffs, init_indices, None )
