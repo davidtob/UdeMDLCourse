@@ -17,6 +17,8 @@ class TMOneSentence(TrainedModel):
         
         sentence_examples = dataset.get(['features'], range(dataset.num_examples))[0]
         sentence_targets  = dataset.get(['targets'],  range(dataset.num_examples))[0]
+        print sentence_examples.shape
+        print sentence_targets.shape
         
         preds = pred_next_sample( sentence_examples )
         preds = preds.reshape( (1,preds.shape[0]) )
