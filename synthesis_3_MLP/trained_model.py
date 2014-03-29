@@ -117,11 +117,8 @@ class TrainedModel(object):
         Y = bestMLP.fprop(X)
         pred_next_sample = theano.function( [X[0]], Y )
         
-        init = dataset.get(['features'], init_indices)[0]
-        print init
-        
+        init = dataset.get(['features'], init_indices)[0]        
         init = numpy.tile( init, (len(sigmacoeffs),1) )
-        print init
 
         if sigmacoeffs!=[0]:
             mrse = numpy.sqrt( self.mses()[1] )
@@ -138,15 +135,11 @@ class TrainedModel(object):
             wave[:,i:i+1] = next_sample+numpy.random.normal( 0, 1, (init.shape[0],1) )*sigmas
         
         raw_wav = (wave*dataset._std + dataset._mean).astype( 'int16' )
-        print wave[0,0:10]
-        print raw_wav[0,0:10]
-        print dataset._std
-        print dataset._mean
-        return raw_wav,dataset
+        return wave,raw_wav,dataset
     
     def generate( self, sigmacoeff = 0.1, init_index = 0, buf = None ):
         print "Generating"
-        raw_wav = self.generate_pcm( [sigmacoeff], [init_index] )
+        _,raw_wav = self.generate_pcm( [sigmacoeff], [init_index] )
         print "Done"
         if buf==None:
             buf = self.pklprefix + "/" + self.string_desc + "-" + descs[i] + ".wav"
