@@ -20,7 +20,7 @@ class TMOneSentence(TrainedModel):
         preds = pred_next_sample( sentence_examples )
         preds = preds.reshape( (1,preds.shape[0]) )
         
-        preds = numpy.hstack( ( numpy.zeros( (1, len(dataset.raw_wav[0])-preds.shape[0]) ), preds ) )
+        preds = numpy.hstack( ( numpy.zeros( (1, len(dataset.raw_wav[0])-preds.shape[1]) ), preds ) )
         return preds
     
     def generate_pcm( self, sigmacoeffs = [0.1], init_indices=[0] ):
