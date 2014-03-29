@@ -17,7 +17,8 @@ class TMOneSentence(TrainedModel):
         
         sentence_examples = dataset.get(['features'], range(dataset.num_examples))[0]
         
-        preds = pred_next_sample( sentence_examples ).reshape( (preds.shape[1], 1) )
+        preds = pred_next_sample( sentence_examples )
+        preds = preds.reshape( (preds.shape[1], 1) )
         
         preds = numpy.vstack( ( numpy.zeros( (1, len(dataset.raw_wav[0])-preds.shape[0]) ), preds ) )
         return preds
