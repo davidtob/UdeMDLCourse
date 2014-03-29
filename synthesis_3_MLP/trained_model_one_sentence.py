@@ -22,8 +22,10 @@ class TMOneSentence(TrainedModel):
         preds = preds.reshape( (1,preds.shape[0]) )
         sentence_targets = sentence_targets.reshape( (1,preds.shape[1]) )
         
-        preds = numpy.hstack( ( numpy.zeros( (1, len(dataset.raw_wav[0])-preds.shape[1]) ), preds ) )
-        return numpy.vstack( (preds, sentence_targets) )
+        ret = numpy.vstack( (sentence_targets,preds) )
+        ret = numpy.hstack( ( numpy.zeros( (2, len(dataset.raw_wav[0])-preds.shape[1]) ), ret ) )
+        
+        return ret
     
     def generate_pcm( self, sigmacoeffs = [0.1], init_indices=[0] ):
         wave, raw_wav, dataset = TrainedModel.generate_pcm( self, sigmacoeffs, init_indices, None )
