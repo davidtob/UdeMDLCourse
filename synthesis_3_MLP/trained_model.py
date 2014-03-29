@@ -121,6 +121,7 @@ class TrainedModel(object):
         print init
         
         init = numpy.tile( init, (len(sigmacoeffs),1) )
+        print init
 
         if sigmacoeffs!=[0]:
             mrse = numpy.sqrt( self.mses()[1] )
@@ -137,7 +138,8 @@ class TrainedModel(object):
             wave[:,i:i+1] = next_sample+numpy.random.normal( 0, 1, (init.shape[0],1) )*sigmas
         
         raw_wav = (wave*dataset._std + dataset._mean).astype( 'uint16' )
-        print raw_wav[0,:0:400]
+        print wave[0,0:10]
+        print raw_wav[0,:0:10]
         return raw_wav,dataset
     
     def generate( self, sigmacoeff = 0.1, init_index = 0, buf = None ):
