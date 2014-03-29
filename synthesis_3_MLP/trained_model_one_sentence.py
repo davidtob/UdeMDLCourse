@@ -27,6 +27,9 @@ class TMOneSentence(TrainedModel):
         wave, raw_wav, dataset = TrainedModel.generate_pcm( self, sigmacoeffs, init_indices, None )
         original = (dataset.raw_wav[0].astype('float')-dataset._mean)/dataset._std
         preds = self.predict_each_original_sample()
+        print wave.shape
+        print original.shape
+        print preds.shape
         return numpy.vstack( (wave, original, preds) )
 
     def datasetyaml( self, trainorvalid ):
