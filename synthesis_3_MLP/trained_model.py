@@ -93,7 +93,10 @@ class TrainedModel(object):
     def mses( self ):
         bestMLP = cPickle.load(open(self.bestMLPpath))
         trainmse = numpy.array(bestMLP.monitor.channels['train_objective'].val_record[-1])
-        validmse = numpy.array(bestMLP.monitor.channels['valid_objective'].val_record[-1])
+        if valid_objective in bestMLP.monitor.channels.keys():
+            validmse = numpy.array(bestMLP.monitor.channels['valid_objective'].val_record[-1])
+        else:
+            validmse = None
         return (trainmse,validmse)
 
     def train( self ):
@@ -252,7 +255,7 @@ class MonitorServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
             self.send_response(200, 'OK')
             self.send_header('Content-type', 'html')
             self.end_headers()
-            self.wfile.write( 'Available commands: trainlogstdout trainlogstderr traingraph yaml generatewav generatepcm' )
+            self.wfile.write( 'Available commands: trainlogstdout trainlogstderr traingraph yaml generatewav generatepcm  bestmses' )
         elif path=='/trainlogstdout':
             self.do_trainlog(0)
         elif path=='/trainlogstderr':
@@ -265,6 +268,8 @@ class MonitorServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
             self.do_generatewav(args)
         elif path=='/generatepcm':
             self.do_generatepcm()
+        elif path=='/bestmses':
+            self.do_bestmses()
         else:
             self.send_error(404, "File not found")
             return None
@@ -292,10 +297,22 @@ class MonitorServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
             self.wfile.write( buf.getvalue() )
     
     def do_yaml(self):
+        try:
+            self.send_response(200, 'OK')
+            self.send_header('Content-type', 'html')
+            self.end_headers()
+            self.wfile.write( self.tm.yaml() )
+        except:
+            self.do_error()
+
+    def do_bestmses(self):
         self.send_response(200, 'OK')
         self.send_header('Content-type', 'html')
         self.end_headers()
-        self.wfile.write( self.tm.yaml() )
+        trainmse,validmse = self.tm.mses()
+        self.wfile.write( "train: %f "%trainmse )
+        if validmse!=None:
+            self.wfile.write( "valid: %f "%validmse )
     
     def do_generatewav(self, args):
         if 'sigma'in args.keys():
@@ -330,7 +347,7 @@ class MonitorServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
     def do_error(self):
         self.send_response(200, 'OK')
-        self.send_header('Content-type', 'audio/vnd.wave')
+        self.send_header('Content-type', 'html')
         self.end_headers()
         self.wfile.write( traceback.format_exc() )
         print traceback.format_exc()
