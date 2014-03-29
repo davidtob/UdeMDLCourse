@@ -139,7 +139,9 @@ class TrainedModel(object):
         
         raw_wav = (wave*dataset._std + dataset._mean).astype( 'uint16' )
         print wave[0,0:10]
-        print raw_wav[0,:0:10]
+        print raw_wav[0,0:10]
+        print dataset._std
+        print dataset._mean
         return raw_wav,dataset
     
     def generate( self, sigmacoeff = 0.1, init_index = 0, buf = None ):
