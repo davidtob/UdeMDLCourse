@@ -31,7 +31,7 @@ class TrainedModel(object):
     # 5. Monitor training progress
     # 6. Compute MSE of trained model
     # 7. Generate from trained model
-    def __init__(self, pklprefix=".", seed=0, learnrate = 0.0125, reg = 0.00005, xsamples=400, noise=False ):
+    def __init__(self, pklprefix=".", seed=0, learnrate = 0.0125, reg = 0.00005, xsamples=400, noise="False" ):
         self.pklprefix = pklprefix
         self.seed = seed
         numpy.random.seed( self.seed )
@@ -43,7 +43,7 @@ class TrainedModel(object):
 
         self.trainlog = io.StringIO()
         
-        self.string_desc = "%s-%d-%f-%d-%s"%(self.string_desc_base,seed,learnrate,xsamples,str(noise))
+        self.string_desc = "%s-%d-%f-%d-%s"%(self.string_desc_base,seed,learnrate,xsamples,noise)
         self.progressMLPpath = self.pklprefix + "/progress-" + self.string_desc + ".pkl"
         self.bestMLPpath     = self.pklprefix + "/best-" + self.string_desc + ".pkl"
     
@@ -336,11 +336,14 @@ class MonitorServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
     def do_generatepcm(self, args):
         if 'sigmas' in args.keys():
             sigmas = map( lambda x: float(x), args['sigmas'][0].split(',') )
-            print sigmas
         else:
             sigmas = [0]
+        if 'init_idx' in args.keys():
+            init_idcs = [ int(args['init_idx'][0]) ]
+        else:
+            init_idcs = [0]
         try:
-            arr = self.tm.generate_pcm( sigmas, [0] )
+            arr = self.tm.generate_pcm( sigmas, init_idcs )
         except:
             self.do_error()
         else:
