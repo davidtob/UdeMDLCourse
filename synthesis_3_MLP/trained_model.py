@@ -123,10 +123,11 @@ class TrainedModel(object):
         init = dataset.get(['features'], init_indices)[0]        
         init = numpy.tile( init, (len(sigmacoeffs),1) )
 
-        if sigmacoeffs!=[0]:
-            mrse = numpy.sqrt( self.mses()[1] )
+        trainmse, validmse = self.mses()
+        if validmse!=None:
+            mrse = numpy.sqrt( validmse )
         else:
-            mrse = numpy.zeros( (len(init_indices),1) )
+            mrse = numpy.sqrt( trainmse )
 
         descs = map(lambda x: str(x[0]) + "-" + str(x[1]), itertools.product( sigmacoeffs, init_indices ) )
         sigmas = numpy.repeat( sigmacoeffs, len(init_indices) ).reshape( ( len(sigmacoeffs)*len(init_indices),1 ) ) * mrse
