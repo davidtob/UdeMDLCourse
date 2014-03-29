@@ -8,9 +8,9 @@ class TMOneSentence(TrainedModel):
         TrainedModel.__init__( self, seed=seed, pklprefix=pklprefix, learnrate=learnrate, reg=reg, xsamples = xsamples, noise=noise )
     
     def generate_pcm( self, sigmacoeffs = [0.1], init_indices=[0] ):
-        raw_wav, dataset = TrainedModel.generate_pcm( self, sigmacoeffs, init_indices, None )
-        original = dataset.raw_wav[0]
-        return numpy.vstack( (raw_wav, original) )
+        wave, raw_wav, dataset = TrainedModel.generate_pcm( self, sigmacoeffs, init_indices, None )
+        original = (dataset.raw_wav[0].astype('float')-dataset._mean)/dataset._std
+        return numpy.vstack( (wave, original) )
 
     def datasetyaml( self, trainorvalid ):
         if trainorvalid!='train':
