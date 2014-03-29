@@ -93,7 +93,7 @@ class TrainedModel(object):
     def mses( self ):
         bestMLP = cPickle.load(open(self.bestMLPpath))
         trainmse = numpy.array(bestMLP.monitor.channels['train_objective'].val_record[-1])
-        if valid_objective in bestMLP.monitor.channels.keys():
+        if 'valid_objective' in bestMLP.monitor.channels.keys():
             validmse = numpy.array(bestMLP.monitor.channels['valid_objective'].val_record[-1])
         else:
             validmse = None
