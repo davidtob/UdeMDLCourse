@@ -7,10 +7,28 @@ class TMOneSentence(TrainedModel):
         self.sentence_num = sentence_num
         TrainedModel.__init__( self, seed=seed, pklprefix=pklprefix, learnrate=learnrate, reg=reg, xsamples = xsamples, noise=noise )
     
+    def predict_each_original_sample( self ):
+        dataset = self.parse_yaml().dataset
+        if length==None:
+            length = len(dataset.raw_wav[0])
+        
+        bestMLP = self.load_bestMLP()
+        X = bestMLP.get_input_space().make_batch_theano()
+        Y = bestMLP.fprop(X)
+        pred_next_sample = theano.function( [X[0]], Y )
+        
+        sentence_examples = dataset.get(['features'], dataset.num_examples)[0]
+        
+        preds = pred_next_sample( sentence_examples ).reshape( (preds.shape[1], 1) )
+        
+        preds = numpy.vstack( ( numpy.zeros( (1, length-preds.shape[0]) ), preds ) )
+        return preds
+    
     def generate_pcm( self, sigmacoeffs = [0.1], init_indices=[0] ):
         wave, raw_wav, dataset = TrainedModel.generate_pcm( self, sigmacoeffs, init_indices, None )
         original = (dataset.raw_wav[0].astype('float')-dataset._mean)/dataset._std
-        return numpy.vstack( (wave, original) )
+        preds = self.predict_each_original_sample()
+        return numpy.vstack( (wave, original, preds) )
 
     def datasetyaml( self, trainorvalid ):
         if trainorvalid!='train':

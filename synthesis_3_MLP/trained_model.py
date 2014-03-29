@@ -129,7 +129,6 @@ class TrainedModel(object):
         else:
             mrse = numpy.sqrt( trainmse )
 
-        descs = map(lambda x: str(x[0]) + "-" + str(x[1]), itertools.product( sigmacoeffs, init_indices ) )
         sigmas = numpy.repeat( sigmacoeffs, len(init_indices) ).reshape( ( len(sigmacoeffs)*len(init_indices),1 ) ) * mrse
         
         wave = numpy.zeros( (init.shape[0],length) )
@@ -335,13 +334,13 @@ class MonitorServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
             self.wfile.write(data)
     
     def do_generatepcm(self, args):
-        if 'sigma'in args.keys():
-            print args['sigma'][0]
-            sigma = float(args['sigma'][0])
+        if 'sigmas' in args.keys():
+            sigmas = map( lambda x: float(x), args['sigmas'][0].split(',') )
+            print sigmas
         else:
-            sigma = 0
+            sigmas = [0]
         try:
-            arr = self.tm.generate_pcm( [sigma], [0] )
+            arr = self.tm.generate_pcm( sigmas, [0] )
         except:
             self.do_error()
         else:
