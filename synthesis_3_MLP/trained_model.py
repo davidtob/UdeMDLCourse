@@ -118,6 +118,7 @@ class TrainedModel(object):
         pred_next_sample = theano.function( [X[0]], Y )
         
         init = dataset.get(['features'], init_indices)[0]
+        print init
         
         init = numpy.tile( init, (len(sigmacoeffs),1) )
 
