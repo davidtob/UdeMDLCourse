@@ -268,7 +268,7 @@ class MonitorServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
         elif path=='/generatewav':
             self.do_generatewav(args)
         elif path=='/generatepcm':
-            self.do_generatepcm()
+            self.do_generatepcm(args)
         elif path=='/bestmses':
             self.do_bestmses()
         else:
