@@ -6,9 +6,11 @@ class TMOneSentence(TrainedModel):
         self.string_desc_base = "one_sentence-%d"%sentence_num
         self.sentence_num = sentence_num
         TrainedModel.__init__( self, seed=seed, pklprefix=pklprefix, learnrate=learnrate, reg=reg, xsamples = xsamples, noise=noise )
+        
+        self.MonitorServer = MonitorServerOneSentence
     
-    def predict_each_original_sample( self ):
-        dataset = self.parse_yaml().dataset
+    def predict_each_original_sample( self, dataset):
+        #dataset = self.parse_yaml().dataset
         
         bestMLP = self.load_bestMLP()
         X = bestMLP.get_input_space().make_batch_theano()
@@ -24,17 +26,28 @@ class TMOneSentence(TrainedModel):
         
         ret = numpy.vstack( (sentence_targets,preds) )
         ret = numpy.hstack( ( numpy.zeros( (2, len(dataset.raw_wav[0])-preds.shape[1]) ), ret ) )
-        
         return ret
     
-    def generate_pcm( self, sigmacoeffs = [0.1], init_indices=[0] ):
-        wave, raw_wav, dataset = TrainedModel.generate_pcm( self, sigmacoeffs, init_indices, None )
+#    def generate_pcm( self, sigmacoeffs = [0.1], init_indices=[0] ):
+#        wave, raw_wav, dataset = TrainedModel.generate_pcm( self, sigmacoeffs, init_indices, None )
+#        original = (dataset.raw_wav[0].astype('float')-dataset._mean)/dataset._std
+#        preds = self.predict_each_original_sample()
+#        return numpy.vstack( (wave, original, preds) )
+    
+    def generate_pcm_with_orig_and_pred( self, sigmacoeffs = [0.1], init_indices=[0] ):
+        wave, raw_wav, dataset = self.generate_pcm( sigmacoeffs, init_indices, None )
         original = (dataset.raw_wav[0].astype('float')-dataset._mean)/dataset._std
-        preds = self.predict_each_original_sample()
-        print wave.shape
-        print original.shape
-        print preds.shape
+        preds = self.predict_each_original_sample(dataset)
         return numpy.vstack( (wave, original, preds) )
+    
+    def generate_with_restarts( self, length ):
+        dataset = self.parse_yaml().dataset
+        init_idcs = range( length, len(dataset.raw_wav[0])-length, length ) 
+        wave, _, _ = self.generate_pcm( [0], init_idcs, length )
+        wave = wave.reshape( (1,length*wave.shape[0]) )
+        original = (dataset.raw_wav[0].astype('float')-dataset._mean)/dataset._std
+        
+        return numpy.vstack( (wave, original[init_idcs[0]:init_idcs[-1]+length]) )
 
     def datasetyaml( self, trainorvalid ):
         if trainorvalid!='train':
@@ -57,6 +70,35 @@ class TMOneSentence(TrainedModel):
                     channel_name: 'train_objective',
                     save_path: \"""" + self.bestMLPpath + """\",
                 }"""
+
+class MonitorServerOneSentence(MonitorServer):
+    def do_generatepcmwithpreds( self, args ):
+        if 'sigmas' in args.keys():
+            sigmas = map( lambda x: float(x), args['sigmas'][0].split(',') )
+        else:
+            sigmas = [0]
+        if 'init_idx' in args.keys():
+            init_idcs = [ int(args['init_idx'][0]) ]
+        else:
+            init_idcs = [0]
+        try:
+             arr = self.tm.generate_pcm_with_orig_and_pred( sigmas, init_idcs )
+        except:
+             self.send_python_error()
+        else:
+             self.send_ascii_encoded_array( arr )
+
+    def do_generatewithrestarts( self, args ):
+        if 'length' in args.keys():
+            length = int( args['length'][0] )
+        else:
+            length = 3000
+        try:
+             arr = self.tm.generate_with_restarts( length )
+        except:
+             self.send_python_error()
+        else:
+            self.send_ascii_encoded_array( arr )
 
 if __name__=="__main__":
     print "Arguments: whatdo pklprefix learnrate reg noise sentence_num"

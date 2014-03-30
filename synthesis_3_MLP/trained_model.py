@@ -46,6 +46,8 @@ class TrainedModel(object):
         self.string_desc = "%s-%d-%f-%d-%s"%(self.string_desc_base,seed,learnrate,xsamples,noise)
         self.progressMLPpath = self.pklprefix + "/progress-" + self.string_desc + ".pkl"
         self.bestMLPpath     = self.pklprefix + "/best-" + self.string_desc + ".pkl"
+        
+        self.MonitorServer = MonitorServer
     
     def load_progressMLP( self ):
         return cPickle.load(open(self.progressMLPpath))
@@ -227,7 +229,7 @@ class TrainedModel(object):
             for port in range(8000, 8010):
                 server_address = ('', port)
                 try:
-                    httpd = BaseHTTPServer.HTTPServer(server_address, MonitorServer)
+                    httpd = BaseHTTPServer.HTTPServer(server_address, self.MonitorServer)
                     break
                 except:
                     print "Could not start on port",port,", trying next"
@@ -252,29 +254,26 @@ class MonitorServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
         path = urlparse.urlparse(self.path).path
         args = urlparse.parse_qs(urlparse.urlparse(self.path).query)
         if path=='/':
+            commands = filter( lambda x: x[0:3]=="do_" and x!="do_HEAD" and x!="do_GET", dir(self) )
+            print dir(self)
+            print commands
             self.send_response(200, 'OK')
             self.send_header('Content-type', 'html')
             self.end_headers()
-            self.wfile.write( 'Available commands: trainlogstdout trainlogstderr traingraph yaml generatewav generatepcm  bestmses' )
-        elif path=='/trainlogstdout':
-            self.do_trainlog(0)
-        elif path=='/trainlogstderr':
-            self.do_trainlog(1)
-        elif path=='/traingraph':
-            self.do_traingraph()
-        elif path=='/yaml':
-            self.do_yaml()
-        elif path=='/generatewav':
-            self.do_generatewav(args)
-        elif path=='/generatepcm':
-            self.do_generatepcm(args)
-        elif path=='/bestmses':
-            self.do_bestmses()
+            self.wfile.write( "Available commands: " )
+            map( lambda x: self.wfile.write(x[3:] + " "), commands )
         else:
-            self.send_error(404, "File not found")
-            return None
+            command = "do_" + path[1:]
+            print command
+            print dir(self)
+            if command in dir(self):
+                func = getattr( self, command )
+                func(args)
+            else:
+                self.send_error(404, "File not found")
+                return None     
     
-    def do_trainlog(self, i):
+    def do_trainlog(self, args):
         self.send_response(200, 'OK')
         self.send_header('Content-type', 'html')
         self.end_headers()
@@ -282,11 +281,11 @@ class MonitorServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
         print "******************"
         self.wfile.write( self.tm.trainlog.getvalue() )
     
-    def do_traingraph(self):
+    def do_traingraph(self, args):
         try:
             fig = self.tm.training_fig()
         except:
-            self.do_error()
+            self.send_python_error()
         else:
             self.send_response(200, 'OK')
             self.send_header('Content-type', 'image/png')
@@ -296,16 +295,16 @@ class MonitorServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
             plt.savefig( buf )
             self.wfile.write( buf.getvalue() )
     
-    def do_yaml(self):
+    def do_yaml(self, args):
         try:
             self.send_response(200, 'OK')
             self.send_header('Content-type', 'html')
             self.end_headers()
             self.wfile.write( self.tm.yaml() )
         except:
-            self.do_error()
+            self.send_python_error()
 
-    def do_bestmses(self):
+    def do_bestmses(self, args):
         self.send_response(200, 'OK')
         self.send_header('Content-type', 'html')
         self.end_headers()
@@ -326,7 +325,7 @@ class MonitorServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
             data = open(fn).read()
             os.remove(fn)
         except:
-            self.do_error()
+            self.send_python_error()
         else:
             self.send_response(200, 'OK')
             self.send_header('Content-type', 'audio/vnd.wave')
@@ -345,15 +344,18 @@ class MonitorServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
         try:
             arr = self.tm.generate_pcm( sigmas, init_idcs )
         except:
-            self.do_error()
+            self.send_python_error()
         else:
-            self.send_response(200, 'OK')
-            self.send_header('Content-type', 'html')
-            self.end_headers()
-            ascii = base64.b64encode( cPickle.dumps( arr ) )
-            self.wfile.write( ascii )
+            self.send_ascii_encoded_array( arr )
+    
+    def send_ascii_encoded_array( self, arr ):
+        self.send_response(200, 'OK')
+        self.send_header('Content-type', 'html')
+        self.end_headers()
+        ascii = base64.b64encode( cPickle.dumps( arr ) )
+        self.wfile.write( ascii )
 
-    def do_error(self):
+    def send_python_error(self):
         self.send_response(200, 'OK')
         self.send_header('Content-type', 'html')
         self.end_headers()
