@@ -112,13 +112,17 @@ class TrainedModel(object):
         train.main_loop()
         self.generate()
     
-    def generate_pcm( self, sigmacoeffs = [0,0.1,0.5,1.0], init_indices=[0,1], length=32000 ):
+    def dataset_for_generation( self ): # If there is a validation use it for generation, since the training set might have noise added
         parsedyaml = self.parse_yaml()
         print parsedyaml.algorithm.monitoring_dataset
         if 'valid' in parsedyaml.algorithm.monitoring_dataset:
             dataset = parsedyaml.algorithm.monitoring_dataset['valid']
         else:
             dataset = parsedyaml.dataset
+        return dataset
+        
+    def generate_pcm( self, sigmacoeffs = [0,0.1,0.5,1.0], init_indices=[0,1], length=32000 ):
+        dataset = self.dataset_for_generation()
         if length==None:
             length = len(dataset.raw_wav[0])
         

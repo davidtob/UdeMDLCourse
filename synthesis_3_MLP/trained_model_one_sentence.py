@@ -41,7 +41,7 @@ class TMOneSentence(TrainedModel):
         return numpy.vstack( (wave, original, preds) )
     
     def generate_with_restarts( self, length ):
-        dataset = self.parse_yaml().dataset
+        dataset = self.dataset_for_generation()
         init_idcs = range( length, len(dataset.raw_wav[0])-length, length ) 
         wave, _, _ = self.generate_pcm( [0], init_idcs, length )
         wave = wave.reshape( (1,length*wave.shape[0]) )
