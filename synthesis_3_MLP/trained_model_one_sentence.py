@@ -49,6 +49,10 @@ class TMOneSentence(TrainedModel):
         
         return numpy.vstack( (wave, original[init_idcs[0]:init_idcs[-1]+length]) )
 
+    def mse_with_restarts( self, length ):
+        wav = self.generate_with_restarts( self, length )
+        return sum( (wav[0,:]-wav[1,:])**2 )
+
     def datasetyaml( self, trainorvalid ):
         if trainorvalid!='train':
             raise str(trainorvalid) + " is not a valid choice for train set"
@@ -99,6 +103,18 @@ class MonitorServerOneSentence(MonitorServer):
              self.send_python_error()
         else:
             self.send_ascii_encoded_array( arr )
+    
+    def do_restartmse( self, args ):
+        if 'length' in args.keys():
+            length = int( args['length'][0] )
+        else:
+            length = 3000
+        try:
+             mse = self.tm.mse_with_restarts( length )
+        except:
+             self.send_python_error()
+        else:
+            self.wfile.write( str(mse) ) 
 
 if __name__=="__main__":
     print "Arguments: whatdo pklprefix learnrate reg noise sentence_num"
