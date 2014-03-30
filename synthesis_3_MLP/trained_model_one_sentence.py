@@ -53,25 +53,31 @@ class TMOneSentence(TrainedModel):
         wav = self.generate_with_restarts( length )
         return sum( (wav[0,:]-wav[1,:])**2 )/wav.shape[1]
 
-    def datasetyaml( self, trainorvalid ):
-        if trainorvalid!='train':
-            raise str(trainorvalid) + " is not a valid choice for train set"
-        return """!obj:research.code.pylearn2.datasets.timit.TIMITOnTheFly {
+    def datasetyaml( self, trainorvalid, withnoise = True ):
+        #if trainorvalid!='train':
+        #    raise str(trainorvalid) + " is not a valid choice for train set"
+        ret= """!obj:research.code.pylearn2.datasets.timit.TIMITOnTheFly {
                 which_set: 'train',
                 frame_length: 1,
                 frames_per_example: """ + str(self.xsamples )+ """,
                 start: """ + str(sentence_num) + """,
                 stop: """ + str(sentence_num+1) + """,
-                audio_only: True,
-                noise: """ + self.noise + """
-            }"""
+                audio_only: True"""
+        if withnoise:
+            ret = ret + """,
+                            noise : """ + self.noise + """
+                         }"""
+        else:
+            ret = ret + """}"""
+        return ret
     
     def monitoringdatasetyaml( self ):
-        return """'train': *train"""
+        return """'train': *train,
+                  'valid': """ + self.datasetyaml( 'train', False )
     
     def monitoringextensionyaml( self ):
         return """!obj:pylearn2.train_extensions.best_params.MonitorBasedSaveBest {
-                    channel_name: 'train_objective',
+                    channel_name: 'valid_objective',
                     save_path: \"""" + self.bestMLPpath + """\",
                 }"""
 

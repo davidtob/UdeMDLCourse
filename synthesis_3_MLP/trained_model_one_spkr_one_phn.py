@@ -1,7 +1,7 @@
 import trained_model
 
 class TMOneSpkrOnePhn(TrainedModel):
-    def __init__(self, pklprefix, seed=0, learnrate = 0.0125, reg = 0.00005, xsamples=400, noise=False ):
+    def __init__(self, pklprefix, seed=0, learnrate = 0.0125, reg = 0.00005, xsamples=400, noise="False" ):
         self.speaker_id = speaker_id
         self.phone = phone
         self.string_desc_base = "one_spkr_one_phn-%d-%d"%(speaker_id,phone)

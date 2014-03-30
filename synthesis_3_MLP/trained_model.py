@@ -113,7 +113,12 @@ class TrainedModel(object):
         self.generate()
     
     def generate_pcm( self, sigmacoeffs = [0,0.1,0.5,1.0], init_indices=[0,1], length=32000 ):
-        dataset = self.parse_yaml().dataset
+        parsedyaml = self.parse_yaml()
+        print parsedyaml.algorithm.monitoring_dataset
+        if 'valid' in parsedyaml.algorithm.monitoring_dataset:
+            dataset = parsedyaml.algorithm.monitoring_dataset['valid']
+        else:
+            dataset = parsedyaml.dataset
         if length==None:
             length = len(dataset.raw_wav[0])
         
@@ -255,8 +260,6 @@ class MonitorServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
         args = urlparse.parse_qs(urlparse.urlparse(self.path).query)
         if path=='/':
             commands = filter( lambda x: x[0:3]=="do_" and x!="do_HEAD" and x!="do_GET", dir(self) )
-            print dir(self)
-            print commands
             self.send_response(200, 'OK')
             self.send_header('Content-type', 'html')
             self.end_headers()
@@ -264,8 +267,6 @@ class MonitorServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
             map( lambda x: self.wfile.write(x[3:] + " "), commands )
         else:
             command = "do_" + path[1:]
-            print command
-            print dir(self)
             if command in dir(self):
                 func = getattr( self, command )
                 func(args)
