@@ -51,7 +51,7 @@ class TMOneSentence(TrainedModel):
 
     def mse_with_restarts( self, length ):
         wav = self.generate_with_restarts( length )
-        return sum( (wav[0,:]-wav[1,:])**2 )
+        return sum( (wav[0,:]-wav[1,:])**2 )/wav.shape[1]
 
     def datasetyaml( self, trainorvalid ):
         if trainorvalid!='train':
