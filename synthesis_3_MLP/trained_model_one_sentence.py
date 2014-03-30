@@ -50,7 +50,7 @@ class TMOneSentence(TrainedModel):
         return numpy.vstack( (wave, original[init_idcs[0]:init_idcs[-1]+length]) )
 
     def mse_with_restarts( self, length ):
-        wav = self.generate_with_restarts( self, length )
+        wav = self.generate_with_restarts( length )
         return sum( (wav[0,:]-wav[1,:])**2 )
 
     def datasetyaml( self, trainorvalid ):
