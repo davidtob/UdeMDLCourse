@@ -2,14 +2,14 @@ import numpy
 from trained_model import *
 
 class TMOneSentence(TrainedModel):
-    def __init__(self, pklprefix, seed=0, learnrate = 0.0125, reg = 0.00005, xsamples=400, noise="False", sentence_num = 0 ):
+    def __init__(self, pklprefix, seed=0, learnrate = 0.0125, reg = 0.00005, xsamples=400, noise="False", sentence_num = 0, noise_decay = False ):
         self.string_desc_base = "one_sentence-%d"%sentence_num
         self.sentence_num = sentence_num
-        TrainedModel.__init__( self, seed=seed, pklprefix=pklprefix, learnrate=learnrate, reg=reg, xsamples = xsamples, noise=noise )
+        TrainedModel.__init__( self, seed=seed, pklprefix=pklprefix, learnrate=learnrate, reg=reg, xsamples = xsamples, noise=noise, noise_decay = noise_decay )
         
         self.MonitorServer = MonitorServerOneSentence
     
-    def predict_each_original_sample( self, dataset):
+    def predict_each_original_sample( self, dataset ):
         #dataset = self.parse_yaml().dataset
         
         bestMLP = self.load_bestMLP()
@@ -65,7 +65,8 @@ class TMOneSentence(TrainedModel):
                 audio_only: True"""
         if withnoise:
             ret = ret + """,
-                            noise : """ + self.noise + """
+                            noise: """ + self.noise + """,
+                            noise_decay: """ + str(self.noise_decay) + """,
                          }"""
         else:
             ret = ret + """}"""
@@ -123,15 +124,20 @@ class MonitorServerOneSentence(MonitorServer):
             self.wfile.write( str(mse) ) 
 
 if __name__=="__main__":
-    print "Arguments: whatdo pklprefix learnrate reg noise sentence_num"
+    print "Arguments: whatdo pklprefix learnrate reg noise sentence_num noise_decay"
     whatdo = sys.argv[1]
     pklprefix = sys.argv[2]
     learnrate = float(sys.argv[3])
     reg = float(sys.argv[4])
     noise = sys.argv[5]
     sentence_num = int(sys.argv[6])
+    if len(sys.argv )>=8:
+        noise_decay = bool( sys.argv[7] )
+    else:
+        noise_decay = False
+    
     global tm
-    tm  = TMOneSentence(pklprefix, learnrate = learnrate, reg=reg,noise=noise, sentence_num=sentence_num )
+    tm  = TMOneSentence(pklprefix, learnrate = learnrate, reg=reg,noise=noise, sentence_num=sentence_num, noise_decay=noise_decay )
     if whatdo=='train' or whatdo=='forcetrain':
         if os.path.isfile(tm.progressMLPpath) and whatdo=='train':
             print "Are you sure you want to train?",tm.progressMLPpath, "exists. If so use forcetrain option."

@@ -1,0 +1,37 @@
+1. Trained network with two hidden layers of 400 units and no noise to learn one sentence. ~900 epochs.
+best mse:
+python trained_model_one_sentence.py server /space/cdrw/new/benchmark 0.07 0.0 False 0
+
+Result: Failure. The network is not able to reproduce the sentence (generating with no noise)
+
+2. Train same network but with learning rate starting at 0.03
+best train mse: 0.000024
+best restart mse: 1.44167598318
+epochs: ~5560
+python trained_model_one_sentence.py server /space/cdrw/new/benchmark 0.03 0.0 False 0 &
+
+Result: Model can reproduce ~2000 samples if started in the middle (not if started at first frame)
+
+3. Train same network but longer
+best mse: 0.000132
+best retasrt mse: 1.74897282256
+epochs: ~6200
+python trained_model_one_sentence.py server /space/cdrw/new/benchmark 0.07 0.0 False 0
+
+Result: Model can reproduce ~500 (?) samples if started in the middle (not if started at first frame)
+
+4. Train network with broadband noise of magnitude 0.3
+
+python trained_model_one_sentence.py server /space/cdrw/new/onesentnoise 1.0 0.0 0.3 0
+
+5. Train network with broadband noise of random magnitude [0 - 1.0]
+
+python trained_model_one_sentence.py server /space/cdrw/new/onesentnoise 1.0 0 [0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9] 0
+
+6. Train network with broadband noise of random magnitude [0 - 1.0] decay towards most recent sample
+
+7. Train network predicting 3, 6, 12, 24, 48, 96 samples
+
+8. Train network with noise with spectrum of sentence
+
+9. Train network with noise with spectrum of sentence and decaying towards end

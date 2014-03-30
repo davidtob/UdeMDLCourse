@@ -31,19 +31,20 @@ class TrainedModel(object):
     # 5. Monitor training progress
     # 6. Compute MSE of trained model
     # 7. Generate from trained model
-    def __init__(self, pklprefix=".", seed=0, learnrate = 0.0125, reg = 0.00005, xsamples=400, noise="False" ):
+    def __init__(self, pklprefix=".", seed=0, learnrate = 0.0125, reg = 0.00005, xsamples=400, noise="False", noise_decay=False ):
         self.pklprefix = pklprefix
         self.seed = seed
         numpy.random.seed( self.seed )
         self.learnrate = learnrate
         self.xsamples = xsamples
         self.noise = noise
+        self.noise_decay = noise_decay
         self.reg = reg
         numpy.random.seed( self.seed )
 
         self.trainlog = io.StringIO()
         
-        self.string_desc = "%s-%d-%f-%d-%s"%(self.string_desc_base,seed,learnrate,xsamples,noise)
+        self.string_desc = "%s-%d-%f-%d-%s-%s"%(self.string_desc_base,seed,learnrate,xsamples,noise,str(noise_decay))
         self.progressMLPpath = self.pklprefix + "/progress-" + self.string_desc + ".pkl"
         self.bestMLPpath     = self.pklprefix + "/best-" + self.string_desc + ".pkl"
         
@@ -75,7 +76,7 @@ class TrainedModel(object):
         for start_at in [0, max(len(train_obj)-100,0)]:
             plt.subplot( 2, 3, i)
             i+=1
-            plt.title( "train+valid obj starting at %d"%start_at )
+            plt.title( "train (blue) + valid(green) obj starting at %d"%start_at )
             plt.plot( range(start_at,len(train_obj)), train_obj[start_at:], color='b' )
             if valid_obj!=None:
                 plt.plot( range(start_at,len(valid_obj)), valid_obj[start_at:], color='g' )
