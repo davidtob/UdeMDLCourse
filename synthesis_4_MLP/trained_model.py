@@ -172,9 +172,9 @@ class TrainedModel(object):
         else:
             mrse = numpy.sqrt( trainmse )
 
-        sigmas = numpy.repeat( sigmacoeffs, len(init_indices) ).reshape( ( len(sigmacoeffs)*len(init_indices),1 ) ) * mrse
+        sigmas = numpy.repeat( sigmacoeffs, len(init_indices) ).reshape( ( len(sigmacoeffs)*len(init_indices),1 ) ) * mrse        
         
-        wave = numpy.zeros( (init.shape[0],length) )
+        wave = numpy.zeros( (init.shape[0],self.xsamples+((length-self.xsamples)/self.ysamples)*self.ysamples) )
         wave[:,0:self.xsamples] = init
         for i in range(self.xsamples, wave.shape[1]-1, self.ysamples): #Generate waveform
             next_sample = pred_next_samples( wave[:,i-self.xsamples:i] )
