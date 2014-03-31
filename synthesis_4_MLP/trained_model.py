@@ -65,33 +65,52 @@ class TrainedModel(object):
         else:
             valid_obj = None
         training_rate = numpy.array(progressMLP.monitor.channels['learning_rate'].val_record)
-        #seconds_per_epoch = numpy.array(progressMLP.monitor.channels['seconds_per_epoch'].val_record)
-        return (train_obj,valid_obj,training_rate)#,seconds_per_epoch)
+        print progressMLP.monitor.channels
+        print progressMLP.monitor.channels.keys()        
+        seconds_per_epoch = numpy.array(progressMLP.monitor.channels['total_seconds_last_epoch'].val_record)
+        return (train_obj,valid_obj,training_rate,seconds_per_epoch)
 
-    def training_fig( self ):
+    def training_fig( self, secs_per_epoch=False ):
         import pylab as plt
-        train_obj, valid_obj, training_rate, = self.training_monitor()
+        train_obj, valid_obj, training_rate,seconds_per_epoch = self.training_monitor()
         fig = plt.figure( figsize=(20,10))
         i = 1
-            
+        
+        if secs_per_epoch==False:
+            cols = 3
+        else:
+            cols = 4
+        
         for start_at in [0, max(len(train_obj)-100,0)]:
-            plt.subplot( 2, 3, i)
+            plt.subplot( 2, cols, i)
             i+=1
             plt.title( "train (blue) + valid(green) obj starting at %d"%start_at )
             plt.plot( range(start_at,len(train_obj)), train_obj[start_at:], color='b' )
             if valid_obj!=None:
                 plt.plot( range(start_at,len(valid_obj)), valid_obj[start_at:], color='g' )
-            plt.subplot( 2, 3, i)
+            plt.subplot( 2, cols, i)
             i+=1
             plt.title( "valid_obj improvement ratio at %d"%start_at )
             if valid_obj!=None:
                 plt.plot( range(start_at+1,len(valid_obj)), valid_obj[start_at+1:]/valid_obj[start_at:-1] )
             else:
                 plt.plot( range(start_at+1,len(train_obj)), train_obj[start_at+1:]/train_obj[start_at:-1] )
-            plt.subplot( 2, 3, i)
+            plt.subplot( 2, cols, i)
             i+=1
             plt.title( "learning_rate" )
             plt.plot( range(start_at,len(training_rate)), training_rate[start_at:] )
+
+            if start_at==0 and secs_per_epoch:
+                plt.subplot( 2, cols, i)
+                i+=1
+                plt.title( "seconds per epoch" )
+                plt.plot( range(len(seconds_per_epoch)), seconds_per_epoch )
+            elif start_at>0 and secs_per_epoch:
+                plt.subplot( 2, cols, i)
+                i+=1
+                plt.title( "seconds per epoch cumulative" )
+                plt.plot( range(len(seconds_per_epoch)), numpy.cumsum(seconds_per_epoch)/3600.0 )
+            
         return fig
 
     def mses( self ):
@@ -293,8 +312,12 @@ class MonitorServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.wfile.write( self.tm.trainlog.getvalue() )
     
     def do_traingraph(self, args):
+        if 'seconds' in args.keys():
+            secs = True
+        else:
+            secs = False
         try:
-            fig = self.tm.training_fig()
+            fig = self.tm.training_fig(secs)
         except:
             self.send_python_error()
         else:
