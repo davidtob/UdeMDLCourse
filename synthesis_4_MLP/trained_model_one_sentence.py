@@ -52,23 +52,39 @@ class TMOneSentence(TrainedModel):
     def mse_with_restarts( self, length ):
         wav = self.generate_with_restarts( length )
         return sum( (wav[0,:]-wav[1,:])**2 )/wav.shape[1]
-    
-    def recursion_rmse( self ):
+
+    def recursion_errors( self, length=1024 ):
         dataset = self.dataset_for_generation()
         original = (dataset.raw_wav[0].astype('float')-dataset._mean)/dataset._std
-        length = 1024
         init_idcs = range( len(dataset.raw_wav[0]) - length )
         print "generating"
         wave, _, _ = self.generate_pcm( [0], init_idcs, length )
         errs = numpy.zeros( length )
         apa = 0
+        errs = numpy.zeros( (len(init_idcs), length) )
         for i in range(wave.shape[0]):
             #print (wave[i,:] - original[i:i+length])**2
-            errs += (wave[i,:] - original[i:i+length])**2
-            apa += (wave[i,self.xsamples] - original[i+self.xsamples])**2
+            errs[i,:] = wave[i,:] - original[i:i+length]            
             #print wave[i,self.xsamples]#,original[i+self.xsamples]
-        errs = numpy.sqrt( errs/wave.shape[0] )
         return errs
+
+    def recursion_rmse( self, length = 1024 ):
+        #dataset = self.dataset_for_generation()
+        #original = (dataset.raw_wav[0].astype('float')-dataset._mean)/dataset._std
+        #length = 1024
+        #init_idcs = range( len(dataset.raw_wav[0]) - length )
+        #print "generating"
+        #wave, _, _ = self.generate_pcm( [0], init_idcs, length )
+        #errs = numpy.zeros( length )
+        #apa = 0
+        #for i in range(wave.shape[0]):
+        #    #print (wave[i,:] - original[i:i+length])**2
+        #    errs += (wave[i,:] - original[i:i+length])**2
+        #    apa += (wave[i,self.xsamples] - original[i+self.xsamples])**2
+        #    #print wave[i,self.xsamples]#,original[i+self.xsamples]
+        #errs = numpy.sqrt( errs/wave.shape[0] )
+        errs = self.recursion_errors( length = length )
+        return numpy.sqrt( errs/errs.shape[0] )
 
     def datasetyaml( self, trainorvalid, withnoise = True ):
         #if trainorvalid!='train':
@@ -78,12 +94,12 @@ class TMOneSentence(TrainedModel):
                 frame_length: 1,
                 frames_per_example: """ + str(self.xsamples )+ """,
                 output_frames_per_example: """ + str(self.ysamples) + """,
-                start: """ + str(sentence_num) + """,
-                stop: """ + str(sentence_num+1) + """,
+                start: """ + str(self.sentence_num) + """,
+                stop: """ + str(self.sentence_num+1) + """,
                 audio_only: True"""
         if withnoise:
             ret = ret + """,
-                            noise: """ + self.noise + """,
+                            noise: """ + str(self.noise) + """,
                             noise_decay: """ + str(self.noise_decay) + """,
                          }"""
         else:
