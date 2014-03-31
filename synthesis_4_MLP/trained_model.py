@@ -223,16 +223,19 @@ class TrainedModel(object):
                         }
                     ]
                 },
+                termination_criterion: !obj:pylearn2.termination_criteria.EpochCounter {
+                    max_epochs: 3000
+                }
             },
             extensions: [
                 """ + self.monitoringextensionyaml() + """,
                 !obj:pylearn2.training_algorithms.sgd.OneOverEpoch {
-                    start: 2000,
+                    start: 1500,
                     half_life: 500
                 }
                 ],
             save_path: \"""" + self.progressMLPpath + """\",
-            save_freq: 1
+            save_freq: 5
         }"""
     
     def start_web_server( self, wait = False ):

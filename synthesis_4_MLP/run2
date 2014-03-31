@@ -1,0 +1,4 @@
+python trained_model_one_sentence.py train /space/cdrw/synt4 0.04 0 400 3 0.0 False False
+python trained_model_one_sentence.py train /space/cdrw/synt4 0.04 0 400 27 0.0 False False
+python trained_model_one_sentence.py train /space/cdrw/synt4 0.04 0 400 9 0.0 False False
+python trained_model_one_sentence.py train /space/cdrw/synt4 0.01 0 400 81 0.0 False False

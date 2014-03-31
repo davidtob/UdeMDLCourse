@@ -1,0 +1,18 @@
+1. no noise
+python trained_model_one_sentence.py train . 0.04 0 400 1 0.0 False False
+2. fixed noise 0.3
+python trained_model_one_sentence.py train . 0.04 0 400 1 0.0 0.3 False
+3. random noise
+python trained_model_one_sentence.py train . 0.05 0 400 1 0.0 [0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9] False
+4. fixed noise decay
+python trained_model_one_sentence.py train . 0.04 0 400 1 0.0 0.3 True
+5. random noise decay
+python trained_model_one_sentence.py train . 0.05 0 400 1 0.0 [0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9] True
+6. predicting 3
+python trained_model_one_sentence.py train . 0.04 0 400 3 0.0 False False
+7. predicting 9
+python trained_model_one_sentence.py train . 0.04 0 400 9 0.0 False False
+8. predicting 27
+python trained_model_one_sentence.py train . 0.04 0 400 27 0.0 False False
+9. predicting 81
+python trained_model_one_sentence.py train . 0.01 0 400 81 0.0 False False
