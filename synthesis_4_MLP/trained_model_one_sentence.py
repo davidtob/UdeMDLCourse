@@ -65,10 +65,10 @@ class TMOneSentence(TrainedModel):
         wave, _, _ = self.generate_pcm( [0], init_idcs, length )
         errs = numpy.zeros( length )
         apa = 0
-        errs = numpy.zeros( (len(init_idcs), length) )
+        errs = numpy.zeros( (len(init_idcs), wave.shape[1]) )
         for i in range(wave.shape[0]):
             #print (wave[i,:] - original[i:i+length])**2
-            errs[i,:] = wave[i,:] - original[init_idcs[i]:init_idcs[i]+length]
+            errs[i,:] = wave[i,:] - original[init_idcs[i]:init_idcs[i]+wave.shape[1]]
             #errs[i,:] = wave[i,:] - original[i:i+length]
             #print wave[i,self.xsamples]#,original[i+self.xsamples]
         return errs
