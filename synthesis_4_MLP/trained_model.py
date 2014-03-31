@@ -65,10 +65,14 @@ class TrainedModel(object):
         else:
             valid_obj = None
         training_rate = numpy.array(progressMLP.monitor.channels['learning_rate'].val_record)
-        print progressMLP.monitor.channels
-        print progressMLP.monitor.channels.keys()        
-        seconds_per_epoch = numpy.array(progressMLP.monitor.channels['total_seconds_last_epoch'].val_record)
+        seconds_per_epoch = numpy.array(progressMLP.monitor.channels['training_seconds_this_epoch'].val_record)
         return (train_obj,valid_obj,training_rate,seconds_per_epoch)
+    
+    def epochs(self):
+        if os.path.isfile(self.progressMLPpath):
+            return len(self.training_monitor()[0])
+        else:
+            return 0
 
     def training_fig( self, secs_per_epoch=False ):
         import pylab as plt
@@ -114,13 +118,20 @@ class TrainedModel(object):
         return fig
 
     def mses( self ):
-        bestMLP = cPickle.load(open(self.bestMLPpath))
-        trainmse = numpy.array(bestMLP.monitor.channels['train_objective'].val_record[-1])
+        try:
+            bestMLP = cPickle.load(open(self.bestMLPpath))
+        except:
+            #print traceback.format_exc()
+            return (0,0)
+        trainmse = numpy.array(bestMLP.monitor.channels['train_objective'].val_record[-1])    
         if 'valid_objective' in bestMLP.monitor.channels.keys():
             validmse = numpy.array(bestMLP.monitor.channels['valid_objective'].val_record[-1])
         else:
             validmse = None
         return (trainmse,validmse)
+        
+    def rmses( self ):
+        return map( lambda x: numpy.sqrt(x), self.mses() )
 
     def train( self ):
         self.start_web_server()

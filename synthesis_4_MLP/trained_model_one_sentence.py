@@ -84,7 +84,7 @@ class TMOneSentence(TrainedModel):
         #    #print wave[i,self.xsamples]#,original[i+self.xsamples]
         #errs = numpy.sqrt( errs/wave.shape[0] )
         errs = self.recursion_errors( length = length )
-        return numpy.sqrt( errs/errs.shape[0] )
+        return numpy.sqrt( numpy.sum(errs/errs.shape[0],0) )
 
     def datasetyaml( self, trainorvalid, withnoise = True ):
         #if trainorvalid!='train':
