@@ -53,10 +53,13 @@ class TMOneSentence(TrainedModel):
         wav = self.generate_with_restarts( length )
         return sum( (wav[0,:]-wav[1,:])**2 )/wav.shape[1]
 
-    def recursion_errors( self, length=1024 ):
+    def recursion_errors( self, length=1024, num_idcs = None ):
         dataset = self.dataset_for_generation()
         original = (dataset.raw_wav[0].astype('float')-dataset._mean)/dataset._std
-        init_idcs = range( len(dataset.raw_wav[0]) - length )
+        if num_idcs == None:
+            init_idcs = range(len(dataset.raw_wav[0]) - length)
+        else:
+            init_idcs = numpy.random.randint( 0, len(dataset.raw_wav[0]) - length, num_idcs )
         print "generating"
         wave, _, _ = self.generate_pcm( [0], init_idcs, length )
         errs = numpy.zeros( length )
@@ -64,11 +67,12 @@ class TMOneSentence(TrainedModel):
         errs = numpy.zeros( (len(init_idcs), length) )
         for i in range(wave.shape[0]):
             #print (wave[i,:] - original[i:i+length])**2
-            errs[i,:] = wave[i,:] - original[i:i+length]            
+            errs[i,:] = wave[i,:] - original[init_idcs[i]:init_idcs[i]+length]
+            #errs[i,:] = wave[i,:] - original[i:i+length]
             #print wave[i,self.xsamples]#,original[i+self.xsamples]
         return errs
 
-    def recursion_rmse( self, length = 1024 ):
+    def recursion_rmse( self, length = 1024, num_idcs = None ):
         #dataset = self.dataset_for_generation()
         #original = (dataset.raw_wav[0].astype('float')-dataset._mean)/dataset._std
         #length = 1024
@@ -83,8 +87,8 @@ class TMOneSentence(TrainedModel):
         #    apa += (wave[i,self.xsamples] - original[i+self.xsamples])**2
         #    #print wave[i,self.xsamples]#,original[i+self.xsamples]
         #errs = numpy.sqrt( errs/wave.shape[0] )
-        errs = self.recursion_errors( length = length )
-        return numpy.sqrt( numpy.sum(errs/errs.shape[0],0) )
+        errs = self.recursion_errors( length = length, num_idcs = num_idcs )
+        return numpy.sqrt( numpy.sum(errs**2/errs.shape[0],0) )
 
     def datasetyaml( self, trainorvalid, withnoise = True ):
         #if trainorvalid!='train':
@@ -198,4 +202,4 @@ if __name__=="__main__":
     elif whatdo=='yaml':
         print tm.yaml()
     elif whatdo=='recursionrmse':
-        print tm.recursion_rmse().tolist()
+        print tm.recursion_rmse(length=410,num_idcs=None).tolist()
