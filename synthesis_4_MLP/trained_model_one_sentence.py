@@ -1,4 +1,5 @@
 import numpy
+import cPickle
 from trained_model import *
 
 class TMOneSentence(TrainedModel):
@@ -202,4 +203,6 @@ if __name__=="__main__":
     elif whatdo=='yaml':
         print tm.yaml()
     elif whatdo=='recursionrmse':
-        print tm.recursion_rmse(length=410,num_idcs=None).tolist()
+        print tm.recursion_rmse(length=2500,num_idcs=10000).tolist()
+    elif whatdo=='recursionerrs':
+        cPickle.dump( tm.recursion_errors(length=2500,num_idcs=10000), open(tm.string_desc, "w") )
